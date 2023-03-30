@@ -10,7 +10,7 @@ sock.listen(1) # Listen for incoming connections
 conn, addr = sock.accept() # Wait for a new client to connect
 
 current_speed = 0 # Initial motor speed
-MAX_SPEED = 32000 # Set maximum motor RPM to 32000
+MAX_SPEED = 30000 # Set maximum motor RPM to 30,000
 SPEED_INCREMENT = 500 # Set speed increment to 500 RPM
 
 # Function to set motor speed
