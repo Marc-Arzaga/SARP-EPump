@@ -1,6 +1,5 @@
 import RPi.GPIO as GPIO
 import time
-import getch
 
 # Setup GPIO pin for ESC signal
 ESC_PIN = 18
@@ -13,18 +12,24 @@ ESC_PWM = GPIO.PWM(ESC_PIN, PWM_FREQ)
 ESC_PWM.start(0)
 
 # Set speed control parameters
-MIN_PWM = 5
-MAX_PWM = 10
-STEP_PWM = 1
+MIN_RPM = 0
+MAX_RPM = 10000
+STEP_RPM = 100
+
+# Function to convert RPM to PWM duty cycle
+def rpm_to_duty_cycle(rpm):
+    return (rpm - MIN_RPM) / (MAX_RPM - MIN_RPM) * 100
 
 # Wait for keyboard input
 while True:
-    char = getch.getch()
-    if char == '\x1b[A':  # Up arrow key
-        ESC_PWM.ChangeDutyCycle(min(ESC_PWM.duty_cycle + STEP_PWM, MAX_PWM) )
-    elif char == '\x1b[B':  # Down arrow key
-        ESC_PWM.ChangeDutyCycle(max(ESC_PWM.duty_cycle - STEP_PWM, MIN_PWM) )
-    elif char == '\x03':  # Ctrl+C
+    char = input("Press 'u' for Up arrow key, 'd' for Down arrow key, or 'q' to quit: ")
+    if char == 'u' or char == 'U':  # Up arrow key
+        new_rpm = min(int(ESC_PWM.duty_cycle) + STEP_RPM, MAX_RPM)
+        ESC_PWM.ChangeDutyCycle(rpm_to_duty_cycle(new_rpm))
+    elif char == 'd' or char == 'D':  # Down arrow key
+        new_rpm = max(int(ESC_PWM.duty_cycle) - STEP_RPM, MIN_RPM)
+        ESC_PWM.ChangeDutyCycle(rpm_to_duty_cycle(new_rpm))
+    elif char == 'q' or char == 'Q':  # Quit
         break
 
 # Clean up GPIO pins
