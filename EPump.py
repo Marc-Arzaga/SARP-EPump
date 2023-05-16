@@ -1,64 +1,68 @@
 import csv
 import time
-import RPi.GPIO as GPIO
 import board
 import busio
 import adafruit_mcp9600
 import adafruit_ads1x15.ads1015 as ADS
 from adafruit_ads1x15.analog_in import AnalogIn
+import RPi.GPIO as GPIO
 
-# Set up GPIO to power on Raspberry Pi
+# Define GPIO pin for triggering data collection
+TRIGGER_PIN = 17
+
+# Setup GPIO pin for input
 GPIO.setmode(GPIO.BCM)
-GPIO.setup(5, GPIO.OUT)
-GPIO.output(5, GPIO.HIGH)
+GPIO.setup(TRIGGER_PIN, GPIO.IN)
 
-# Set up I2C communication for MCP9600s
+# Setup I2C communication with the MCP9600 amplifiers
 i2c = busio.I2C(board.SCL, board.SDA)
-mcp1 = adafruit_mcp9600.MCP9600(i2c, address=0x67)
-mcp2 = adafruit_mcp9600.MCP9600(i2c, address=0x68)
+mcp_1 = adafruit_mcp9600.MCP9600(i2c, address=0x67)
+mcp_2 = adafruit_mcp9600.MCP9600(i2c, address=0x68)
 
-# Set up I2C communication for ADS1015s
-ads1 = ADS.ADS1015(i2c, address=0x48)
-ads2 = ADS.ADS1015(i2c, address=0x49)
+# Setup I2C communication with the ADS1015 ADCs
+ads_1 = ADS.ADS1015(i2c, address=0x48)
+ads_2 = ADS.ADS1015(i2c, address=0x49)
 
-# Set up analog inputs for ADS1015s
-chan1 = AnalogIn(ads1, ADS.P0)
-chan2 = AnalogIn(ads1, ADS.P1)
-chan3 = AnalogIn(ads1, ADS.P2)
-chan4 = AnalogIn(ads1, ADS.P3)
-chan5 = AnalogIn(ads2, ADS.P0)
-chan6 = AnalogIn(ads2, ADS.P1)
-chan7 = AnalogIn(ads2, ADS.P2)
-chan8 = AnalogIn(ads2, ADS.P3)
+# Create analog input objects for each pressure transducer
+pressure_1 = AnalogIn(ads_1, ADS.P0)
+pressure_2 = AnalogIn(ads_1, ADS.P1)
+pressure_3 = AnalogIn(ads_1, ADS.P2)
+pressure_4 = AnalogIn(ads_1, ADS.P3)
+pressure_5 = AnalogIn(ads_2, ADS.P0)
+pressure_6 = AnalogIn(ads_2, ADS.P1)
+pressure_7 = AnalogIn(ads_2, ADS.P2)
+pressure_8 = AnalogIn(ads_2, ADS.P3)
 
-# Open CSV file for writing
-with open('data.csv', 'w', newline='') as file:
-    writer = csv.writer(file)
+# Define function for reading flow meter pulses
+def read_flowmeter():
+    pulse_count = 0
+    while GPIO.input(TRIGGER_PIN) == GPIO.HIGH:
+        pulse_count += 1
+        time.sleep(0.001) # wait for 1 millisecond
+    return pulse_count
 
-    # Write headers for data
-    writer.writerow(['Time', 'Temp1 (C)', 'Temp2 (C)', 'Pressure1 (PSI)', 'Pressure2 (PSI)', 'Pressure3 (PSI)', 'Pressure4 (PSI)', 'Temp3 (C)', 'Temp4 (C)', 'Pressure5 (PSI)', 'Pressure6 (PSI)', 'Pressure7 (PSI)', 'Pressure8 (PSI)'])
-
-    # Continuously read and store data in CSV file
-    while True:
-        # Get current time
-        curr_time = time.time()
-
-        # Read temperature from MCP9600s and convert to Celsius
-        temp1 = mcp1.temperature - 273.15
-        temp2 = mcp2.temperature - 273.15
-
-        # Read pressure from ADS1015s and convert to PSI
-        pressure1 = chan1.voltage * 100 / 4.5
-        pressure2 = chan2.voltage * 100 / 4.5
-        pressure3 = chan3.voltage * 100 / 4.5
-        pressure4 = chan4.voltage * 100 / 4.5
-        pressure5 = chan5.voltage * 100 / 4.5
-        pressure6 = chan6.voltage * 100 / 4.5
-        pressure7 = chan7.voltage * 100 / 4.5
-        pressure8 = chan8.voltage * 100 / 4.5
-
-        # Write data to CSV file
-        writer.writerow([curr_time, temp1, temp2, pressure1, pressure2, pressure3, pressure4, temp3, temp4, pressure5, pressure6, pressure7, pressure8])
-
-        # Wait for 1 second before reading data again
-        time.sleep(1)
+# Main data collection loop
+while True:
+    # Wait for trigger pin to go high
+    while GPIO.input(TRIGGER_PIN) == GPIO.LOW:
+        pass
+    
+    # Read data from sensors
+    temp_1 = mcp_1.temperature
+    temp_2 = mcp_2.temperature
+    pressure_1_psi = pressure_1.voltage * 60
+    pressure_2_psi = pressure_2.voltage * 60
+    pressure_3_psi = pressure_3.voltage * 60
+    pressure_4_psi = pressure_4.voltage * 60
+    pressure_5_psi = pressure_5.voltage * 60
+    pressure_6_psi = pressure_6.voltage * 60
+    pressure_7_psi = pressure_7.voltage * 60
+    pressure_8_psi = pressure_8.voltage * 60
+    pulse_count = read_flowmeter()
+    
+    # Write data to CSV file
+    with open(f"test_run{test_run_num}.csv", "a") as csvfile:
+        writer = csv.writer(csvfile)
+        writer.writerow([time.time(), temp_1, temp_2, pressure_1_psi, pressure_2_psi, pressure_3_psi, pressure_4_psi, pressure_5_psi, pressure_6_psi, pressure_7_psi, pressure_8_psi, pulse_count])
+    
+    # Wait for trigger pin
