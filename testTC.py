@@ -1,55 +1,36 @@
 import csv
 import time
-import os
 import board
 import busio
 import adafruit_mcp9600
 
-# Thermocouple configurations
-thermocouple1 = adafruit_mcp9600.MCP9600(busio.I2C(board.SCL, board.SDA), address=0x67)
-thermocouple2 = adafruit_mcp9600.MCP9600(busio.I2C(board.SCL, board.SDA), address=0x66)
+# Initialize I2C bus and MCP9600 objects
+i2c = busio.I2C(board.SCL, board.SDA)
+mcp9600_1 = adafruit_mcp9600.MCP9600(i2c, address=0x67)
+mcp9600_2 = adafruit_mcp9600.MCP9600(i2c, address=0x68)
 
-# CSV file path
-csv_file = os.path.join(os.path.expanduser("~"), "Desktop", "thermocouple_data.csv")
+# Create and open the CSV file for writing
+csv_file_path = "/home/pi/Desktop/thermocouple_data.csv"
+csv_file = open(csv_file_path, mode="w")
+csv_writer = csv.writer(csv_file)
+csv_writer.writerow(["Timestamp", "Temperature 1", "Temperature 2"])
 
-# Create CSV file if it doesn't exist
-if not os.path.exists(csv_file):
-    with open(csv_file, mode="w") as file:
-        writer = csv.writer(file)
-        writer.writerow(["Time (s)", "Temperature 1 (C)", "Temperature 2 (C)"])
+try:
+    while True:
+        # Read temperatures from both MCP9600s
+        temperature_1 = mcp9600_1.temperature
+        temperature_2 = mcp9600_2.temperature
 
-# Data collection loop
-start_time = time.time()
-collecting_data = False
+        # Get the current timestamp
+        timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
 
-while True:
-    # Check if data collection should start or stop
-    user_input = input("Enter 'start' to begin data collection or 'stop' to finish: ")
+        # Write data to the CSV file
+        csv_writer.writerow([timestamp, temperature_1, temperature_2])
+        csv_file.flush()  # Flush the buffer to ensure data is written immediately
 
-    if user_input.lower() == "start":
-        if not collecting_data:
-            collecting_data = True
-            start_time = time.time()
-            print("Data collection started.")
-    elif user_input.lower() == "stop":
-        if collecting_data:
-            collecting_data = False
-            print("Data collection stopped.")
-            break
-    else:
-        print("Invalid input. Enter 'start' or 'stop'.")
+        # Wait for 1 second before the next reading
+        time.sleep(1)
 
-    # Read and log temperature data
-    if collecting_data:
-        current_time = time.time() - start_time
-        temperature1 = thermocouple1.temperature
-        temperature2 = thermocouple2.temperature
-
-        with open(csv_file, mode="a") as file:
-            writer = csv.writer(file)
-            writer.writerow([current_time, temperature1, temperature2])
-
-        print(f"Time: {current_time:.2f}s, Temperature 1: {temperature1:.2f}°C, Temperature 2: {temperature2:.2f}°C")
-
-    # Delay between data samples
-    time.sleep(0.5)
+except KeyboardInterrupt:
+    # Close the CSV file and clean up
+    csv_file.close()
