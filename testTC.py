@@ -7,7 +7,7 @@ import adafruit_mcp9600
 # Initialize I2C bus and MCP9600 objects
 i2c = busio.I2C(board.SCL, board.SDA)
 mcp9600_1 = adafruit_mcp9600.MCP9600(i2c, address=0x67)
-mcp9600_2 = adafruit_mcp9600.MCP9600(i2c, address=0x68)
+mcp9600_2 = adafruit_mcp9600.MCP9600(i2c, address=0x60)
 
 # Create and open the CSV file for writing
 csv_file_path = "/home/pi/Desktop/thermocouple_data.csv"
