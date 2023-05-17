@@ -22,7 +22,7 @@ try:
         temperature_2 = mcp9600_2.temperature
 
         # Get the current timestamp
-        timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
+        timestamp = time.strftime("%H:%M:%S")
 
         # Write data to the CSV file
         csv_writer.writerow([timestamp, temperature_1, temperature_2])
