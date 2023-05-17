@@ -17,7 +17,7 @@ GPIO.setup(TRIGGER_PIN, GPIO.IN)
 # Setup I2C communication with the MCP9600 amplifiers
 i2c = busio.I2C(board.SCL, board.SDA)
 mcp_1 = adafruit_mcp9600.MCP9600(i2c, address=0x67)
-mcp_2 = adafruit_mcp9600.MCP9600(i2c, address=0x68)
+mcp_2 = adafruit_mcp9600.MCP9600(i2c, address=0x60)
 
 # Setup I2C communication with the ADS1015 ADCs
 ads_1 = ADS.ADS1015(i2c, address=0x48)
@@ -30,8 +30,7 @@ pressure_3 = AnalogIn(ads_1, ADS.P2)
 pressure_4 = AnalogIn(ads_1, ADS.P3)
 pressure_5 = AnalogIn(ads_2, ADS.P0)
 pressure_6 = AnalogIn(ads_2, ADS.P1)
-pressure_7 = AnalogIn(ads_2, ADS.P2)
-pressure_8 = AnalogIn(ads_2, ADS.P3)
+
 
 # Define function for reading flow meter pulses
 def read_flowmeter():
@@ -56,8 +55,7 @@ while True:
     pressure_4_psi = pressure_4.voltage * 60
     pressure_5_psi = pressure_5.voltage * 60
     pressure_6_psi = pressure_6.voltage * 60
-    pressure_7_psi = pressure_7.voltage * 60
-    pressure_8_psi = pressure_8.voltage * 60
+
     pulse_count = read_flowmeter()
     
     # Write data to CSV file
