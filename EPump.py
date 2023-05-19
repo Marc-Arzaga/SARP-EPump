@@ -28,8 +28,8 @@ pressure_1 = AnalogIn(ads_1, ADS.P0)
 pressure_2 = AnalogIn(ads_1, ADS.P1)
 pressure_3 = AnalogIn(ads_1, ADS.P2)
 pressure_4 = AnalogIn(ads_1, ADS.P3)
-pressure_5 = AnalogIn(ads_2, ADS.P0)
-pressure_6 = AnalogIn(ads_2, ADS.P1)
+pressure_5 = AnalogIn(ads_2, ADS.P2)
+pressure_6 = AnalogIn(ads_2, ADS.P3)
 
 
 # Define function for reading flow meter pulses
