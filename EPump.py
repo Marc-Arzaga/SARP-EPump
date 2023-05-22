@@ -31,6 +31,9 @@ pressure_4 = AnalogIn(ads_1, ADS.P3)
 pressure_5 = AnalogIn(ads_2, ADS.P2)
 pressure_6 = AnalogIn(ads_2, ADS.P3)
 
+# Define boolean for startup
+
+STARTUP = True
 
 # Define function for reading flow meter pulses
 def read_flowmeter():
@@ -45,7 +48,13 @@ while True:
     # Wait for trigger pin to go high
     while GPIO.input(TRIGGER_PIN) == GPIO.LOW:
         pass
-    
+
+    if (STARTUP):
+        with open(f"test_run{test_run_num}.csv", "a") as csvfile:
+            writer = csv.writer(csvfile)
+            writer.writerow(["-", "-", "-", "-", "-", "-", "-", "-", "-", "-"])
+        STARTUP = False
+
     # Read data from sensors
     temp_1 = mcp_1.temperature
     temp_2 = mcp_2.temperature
@@ -57,10 +66,10 @@ while True:
     pressure_6_psi = pressure_6.voltage * 60
 
     pulse_count = read_flowmeter()
-    
+
     # Write data to CSV file
     with open(f"test_run{test_run_num}.csv", "a") as csvfile:
         writer = csv.writer(csvfile)
-        writer.writerow([time.time(), temp_1, temp_2, pressure_1_psi, pressure_2_psi, pressure_3_psi, pressure_4_psi, pressure_5_psi, pressure_6_psi, pressure_7_psi, pressure_8_psi, pulse_count])
-    
+        writer.writerow([time.time(), temp_1, temp_2, pressure_1_psi, pressure_2_psi, pressure_3_psi, pressure_4_psi, pressure_5_psi, pressure_6_psi, pulse_count])
+
     # Wait for trigger pin
