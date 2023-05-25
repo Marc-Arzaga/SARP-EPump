@@ -9,6 +9,7 @@ import RPi.GPIO as GPIO
 
 # Define GPIO pin for triggering data collection
 TRIGGER_PIN = 17
+FLOWMETER_PIN = 24
 
 # Setup GPIO pin for input
 GPIO.setmode(GPIO.BCM)
@@ -35,12 +36,17 @@ pressure_6 = AnalogIn(ads_2, ADS.P3)
 
 STARTUP = True
 
+# Define start time
+
+start_time = time.time()
+
 # Define function for reading flow meter pulses
 def read_flowmeter():
     pulse_count = 0
     while GPIO.input(TRIGGER_PIN) == GPIO.HIGH:
-        pulse_count += 1
-        time.sleep(0.001) # wait for 1 millisecond
+        if GPIO.INPUT(FLOWMETER_PIN) == GPIO.HIGH:
+            pulse_count += 1
+        time.sleep(0.001)
     return pulse_count
 
 # Main data collection loop
@@ -50,9 +56,9 @@ while True:
         pass
 
     if (STARTUP):
-        with open(f"test_run{test_run_num}.csv", "a") as csvfile:
+        with open(f"test_run.csv", "a") as csvfile:
             writer = csv.writer(csvfile)
-            writer.writerow(["-", "-", "-", "-", "-", "-", "-", "-", "-", "-"])
+            writer.writerow(["Time (secs)", "Temperature1", "Temperature2", "Pressure1", "Pressure2", "Pressure3", "Pressure4", "Pressure5", "Pressure6", "PulseCount"])
         STARTUP = False
 
     # Read data from sensors
@@ -64,12 +70,12 @@ while True:
     pressure_4_psi = pressure_4.voltage * 60
     pressure_5_psi = pressure_5.voltage * 60
     pressure_6_psi = pressure_6.voltage * 60
-
+    
     pulse_count = read_flowmeter()
 
     # Write data to CSV file
-    with open(f"test_run{test_run_num}.csv", "a") as csvfile:
+    with open(f"test_run.csv", "a") as csvfile:
         writer = csv.writer(csvfile)
-        writer.writerow([time.time(), temp_1, temp_2, pressure_1_psi, pressure_2_psi, pressure_3_psi, pressure_4_psi, pressure_5_psi, pressure_6_psi, pulse_count])
+        writer.writerow([round(time.time() - start_time, 3), round(temp_1, 3), round(temp_2, 3), round(pressure_1_psi, 3), round(pressure_2_psi, 3), round(pressure_3_psi, 3), round(pressure_4_psi, 3), round(pressure_5_psi, 3), round(pressure_6_psi, 3), pulse_count])
 
     # Wait for trigger pin
